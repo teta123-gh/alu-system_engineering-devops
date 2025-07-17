@@ -1,34 +1,16 @@
 #!/usr/bin/env bash
-# Script to install nginx and configure a 301 redirect
+# Installs Nginx with the following configurations:
+#+    Listens on port 80.
+#+    Returns a page containing "Holberton School" when queried
+#++    at the root with a curl GET request.
 
-# Exit if any command fails
-set -e
+sudo apt-get update 
+sudo apt-get install -y nginx 
 
-# Update and install nginx
-apt-get update -y
-apt-get install nginx -y
+echo "Holberton School" | sudo tee /var/www/html/index.html
 
-# Add a custom homepage
-echo "Holberton School for the win!" > /var/www/html/index.html
+string_for_replacement="server_name _;\n\trewrite ^\/redirect_me https:\/\/www.youtube.com\/watch?v=QH2-TGUlwu4 permanent;"
 
-# Insert redirection block safely using tee and HEREDOC
-CONFIG="/etc/nginx/sites-available/default"
+sudo sed -i "s/server_name _;/$string_for_replacement/" /etc/nginx/sites-available/default
 
-# Only add the redirect if it's not already present
-if ! grep -q "location /redirect_me" "$CONFIG"; then
-    # Insert before the last closing }
-    awk '
-    /server {/ { print; found=1; next }
-    found && /\}/ && !done { 
-        print "    location /redirect_me {";
-        print "        return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;";
-        print "    }";
-        done=1 
-    }
-    { print }
-    ' "$CONFIG" > /tmp/default && mv /tmp/default "$CONFIG"
-fi
-
-# Restart nginx
-service nginx restart
-
+sudo service nginx restart
