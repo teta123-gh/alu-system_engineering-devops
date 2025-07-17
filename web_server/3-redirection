@@ -1,21 +1,28 @@
 #!/usr/bin/env bash
-# Sets up a redirection on Nginx
+# Script to set up Nginx and add a 301 redirect to /redirect_me
 
-# Exit on any error
+# Exit immediately on error
 set -e
 
-# Update and install nginx if not installed
+# Install nginx if not already installed
 apt-get update
 apt-get install -y nginx
 
-# Create the custom redirect config file
-REDIRECT_CONF="/etc/nginx/sites-available/default"
+# Path to default config
+CONFIG="/etc/nginx/sites-available/default"
 
-# Use sed to insert redirection configuration inside the default server block
-sed -i '/^\s*location \/ {/i \
+# Use sed to replace the existing location / block with two blocks:
+# One for /redirect_me with 301 redirect
+# One for / (unchanged original content)
+
+sed -i '/location \/ {/c\
     location /redirect_me {\n\
         return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;\n\
-    }\n' "$REDIRECT_CONF"
+    }\n\
+\n\
+    location / {\n\
+        try_files $uri $uri/ =404;\n\
+    }' "$CONFIG"
 
 # Restart nginx to apply changes
 systemctl restart nginx
