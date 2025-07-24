@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#Debuging error on port 80
 rm /etc/nginx/sites-enabled/default
 cd /etc/nginx/sites-enabled/
 ln -s ../sites-available/default .
